@@ -169,6 +169,8 @@ input:focus ~ .bar:before, input:focus ~ .bar:after {
 
 input:focus {
     box-shadow: none !important;
+    border: 0px !important;
+    outline: none !important;
 }
 
 

@@ -143,7 +143,26 @@ var _createTag = function(parent, key, content, isVerb, actionType) {
 
 // make everything keyboard navigatable
 var recalcSpatialNavigation = function() {
-  $('.focusable').SpatialNavigation();
+        $('.focusable').SpatialNavigation();
+          
+        // All valid events.
+        var validEvents = [
+          'sn:willunfocus',
+          'sn:unfocused',
+          'sn:willfocus',
+          'sn:focused',
+          'sn:enter-down',
+          'sn:enter-up',
+          'sn:navigatefailed'
+        ];
+        var eventHandler = function(evt) {
+          console.log(evt.type + ': ' + evt.target.id);
+        };
+        validEvents.forEach(function(type) {
+          window.addEventListener(type, eventHandler);
+        });
+        SpatialNavigation.makeFocusable();
+        SpatialNavigation.focus();
 };
 
 /**
