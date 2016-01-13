@@ -1,4 +1,5 @@
-/*globals $, defaultVerbStore, verbSearch, localforage */
+/*globals $, defaultVerbStore, defaultAdjStore,
+          verbSearch, localforage, UrlHelper, DialogManager */
 'use strict';
 
 /**
@@ -14,6 +15,13 @@ var parseResult = {
   results: []
 };
 
+var template = function(templateBody, data) {
+  return templateBody.replace(/{(\w*)}/g,
+    function(textMatched, key) {
+      return data.hasOwnProperty(key) ? data[key] : '';
+    });
+};
+
 /**
  * input text parser, respond for everything
  */
@@ -26,11 +34,11 @@ var huxian = {
     var results = pedia.filter(function(element) {
       return element.indexOf(verb) > -1;
     });
-    if(restTerm) {
+    if(restTerm && results[0]) {
       results = [results[0]];
     }
 
-    // console.log(verb, restTerm, results);
+    // console.log('huxian: ', verb, restTerm, results);
     parseResult.verb = verb;
     parseResult.restTerm = restTerm;
     parseResult.results = results;
@@ -76,7 +84,7 @@ var queryInstantSuggestions = function(inputText) {
         // console.log(suggestUrl + encodeURI(verb));
         $.ajax({
           type: 'GET',
-          url: suggestUrl + encodeURIComponent(verb),
+          url: template(suggestUrl, {term: encodeURIComponent(verb)}),
           dataType: 'jsonp'
         }).done(function(response) {
           //console.log(JSON.stringify(response));
@@ -98,7 +106,7 @@ var queryInstantSuggestions = function(inputText) {
           // console.log(suggestUrl + encodeURI(verb));
           $.ajax({
             type: 'GET',
-            url: suggestUrl + encodeURIComponent(restTerm),
+            url: template(suggestUrl, {term: encodeURIComponent(restTerm)}),
             dataType: 'jsonp'
           }).done(function(response) {
             //console.log(JSON.stringify(response));
@@ -276,30 +284,6 @@ var registerKeyboardHandlers = function() {
   });
 };
 
-var _renderChatBox = function(speaker, msg) {
-  var chatbox = document.createElement('section');
-  chatbox.classList.add('chat', speaker + '-chat');
-  //chatbox.textContent = "I am " + target.dataset.type + "ing \"" + decodeURI(target.dataset.key) + "\" with " + target.id;
-  chatbox.innerHTML = msg;
-  chatHistory.appendChild(chatbox);
-};
-
-var userSpeakCommand = function(msg) {
-  _renderChatBox('user', msg);
-};
-
-var botSpeakCommandResult = function(target, resultUrl) { //resultUrl is for the default case
-  var type = target.dataset.type;
-  var id = target.id;
-  var url = _getProvider(type, id).url;
-
-  var msg = 'I am ' + target.dataset.type + 'ing \"' +
-    decodeURI(target.dataset.key) + '\" with ' + target.id + '...<br/>';
-  msg += 'Here you are: <a href=\"' + resultUrl + '\">' +
-    decodeURI(target.dataset.key) + ' on ' + target.id + '</a>';
-  _renderChatBox('bot', msg);
-};
-
 var _executeCommand = function(target) {
   var type = target.dataset.type;
   var id = target.id;
@@ -310,57 +294,87 @@ var _executeCommand = function(target) {
     var url = _getProvider(type, id).url;
     var embed = _getProvider(type, id).embed;
     //console.log('open '+ url);
-    var msg = 'Open \"' + decodeURI(target.id) + '\"';
+
+    DialogManager.push({
+      speaker: 'user',
+      msg: template(adjPersona.actionOpen, {provider: decodeURI(target.id)})
+    });
+
     var response = '';
     if (embed) {
-      response = '<iframe src="' + url + '" height="320" width="480" ' +
-        'frameBorder="0"></iframe>';
+      response = template(adjPersona.showWidget, {url: url});
     } else {
-      response = 'Here you are: <a href=\"' + url + '\" target=\"_blank\">' +
-        decodeURI(target.id) + '</a>';
-      window.open(url, '_blank');
+      response = template(adjPersona.showLink,
+        {url: url, app: decodeURI(target.id)});
     }
+    DialogManager.push({
+      speaker: 'bot',
+      msg: response
+    });
 
-    _renderChatBox('user', msg);
-    _renderChatBox('bot', response);
-    searchfield.value = '';
-    processInputs();
+    if (!embed) {
+      openLink(url);
+    }
     break;
   case 'config':
     var url = _getProvider(type, id).url;
     var embed = _getProvider(type, id).embed;
-    var msg = 'Open configuration \"' + decodeURI(target.id) + '\"';
     var response = '';
     if (embed) {
-      response = '<iframe src="' + url + '" height="320" width="480" ' +
-        'frameBorder="0"></iframe>';
+      response = template(adjPersona.showWidget, {url: url});
     } else {
-      response = 'Here you are: <a href=\"' + url + '\" target=\"_blank\">' +
-        decodeURI(target.id) + '</a>';
-      window.open(url, '_blank');
+      response = template(adjPersona.showLink,
+        {url: url, provider: decodeURI(target.id)});
+      openLink(url);
     }
 
-    _renderChatBox('user', msg);
-    _renderChatBox('bot', response);
+    DialogManager.push({
+      speaker: 'user',
+      msg: template(adjPersona.actionConfig, {
+        provider: decodeURI(target.id)
+      })
+    });
+    DialogManager.push({
+      speaker: 'bot',
+      msg: response
+    });
     searchfield.value = '';
     processInputs();
     break;
   default: // search
-    var url = _getProvider(type, id).url;
-    //console.log('open ' + url + evt.target.dataset.key);
-    var msg = target.dataset.type + ' \"' + decodeURI(target.dataset.key) +
-      '\" with ' + target.id;
-    var response = 'I am ' + target.dataset.type + 'ing \"' +
-      decodeURI(target.dataset.key) + '\" with ' + target.id + '...<br/>';
-    response += 'Here you are: <a href=\"' + url + target.dataset.key +
-      '\" target=\"_blank\">' + decodeURI(target.dataset.key) + ' on ' +
-      target.id + '</a>';
-
-    _renderChatBox('user', msg);
-    _renderChatBox('bot', response);
-    window.open(url + target.dataset.key, '_blank');
-    searchfield.value = '';
-    processInputs();
+    var input = target.dataset.key;
+    // Not a valid URL, could be a search term
+    if (UrlHelper.isNotURL(input)) {
+      var url = template(_getProvider(type, id).url, {term: input});
+      //console.log('open ' + url + evt.target.dataset.key);
+      DialogManager.push({
+        speaker: 'user',
+        msg: template(adjPersona.actionSearch, {
+          verb: target.dataset.type,
+          term: decodeURI(input),
+          provider: target.id
+        })
+      });
+      DialogManager.push({
+        speaker: 'bot',
+        msg: template(adjPersona.actionSearchReply, {
+          url: url,
+          verb: target.dataset.type,
+          term: decodeURI(input),
+          provider: target.id})
+      });
+      openLink(template(url, {term: input}));
+    } else { // open page directly
+      // console.log('ori:' + input);
+      input = input.replace('%3A%2F%2F', '://');
+      var hasScheme = UrlHelper.hasScheme(input);
+      // No scheme, prepend basic protocol and return
+      if (!hasScheme) {
+        input = 'http://' + input;
+      }
+      // console.log(input);
+      openLink(input);
+    }
     break;
   }
 };
@@ -498,6 +512,10 @@ var renderSuggestions = function(element, inputText) {
   recalcSpatialNavigation();
 };
 
+var openLink = function(url) {
+  window.location = url;
+};
+
 var processInputs = function() {
   huxian.parse(searchfield.value, searchPool);
   resetUI();
@@ -508,6 +526,7 @@ var processInputs = function() {
 // init start
 // define all supported verbs
 var stoerKey = 'verbstore';
+var adjPersona;
 var verbAddons = [];
 // the universal verb tags pool
 var searchPool = [];
@@ -560,8 +579,12 @@ var initUI = function() {
 var init = function() {
   initVerbsMapping();
   initUI();
+  DialogManager.init(chatHistory, adjPersona);
 };
 
+// default personality
+adjPersona = defaultAdjStore;
+// load addon locally
 localforage.getItem(stoerKey, function(err, value) {
   if (err) {
     console.error(err);

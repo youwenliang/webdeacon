@@ -8,8 +8,8 @@ Exchange the line above for this to enable offline support
   <head>
     <meta charset="UTF-8">
     <link rel="manifest" href="manifest.json">
-    <title>WebDeacon</title>
-    <meta name="description" content="your deacon through the web">
+    <title>Webby</title>
+    <meta name="description" content="Your internet assistant through the web">
     <!-- remove maximum-scale for mobile web -->
     <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,minimal-ui">
     <!-- installable from browser -->
@@ -54,7 +54,7 @@ Exchange the line above for this to enable offline support
   </head>
   <body fullbleed unresolved>
     <header id="header" class="navbar navbar-fixed-top shadow-z-3">
-      <a class="navbar-brand" id="titlebar" href="#">WebDeacon</a>
+      <a class="navbar-brand" id="titlebar" href="#">Webby</a>
       <ul class="nav navbar-nav pull-left">
       </ul>
     </header>
@@ -87,6 +87,9 @@ Exchange the line above for this to enable offline support
 
     <!-- polyfill -->
     <!-- custom script -->
+    <script defer src="js/url_helper.js"></script>
+    <script defer src="js/dialog_manager.js"></script>
+    <script defer src="js/default_adj.js"></script>
     <script defer src="js/default_verbs.js"></script>
     <script defer src="js/main.js"></script>
   </body>

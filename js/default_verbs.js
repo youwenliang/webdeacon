@@ -3,29 +3,30 @@
 
 var verbSearch = {
   actionVerb: 'search',
+  version: '0.4',
   providers: [{
     name: 'Google',
-    url: 'https://www.google.com/search?q=',
-    suggest: 'https://www.google.com/complete/search?client=firefox&q='
+    url: 'https://www.google.com/search?q={term}',
+    suggest: 'https://www.google.com/complete/search?client=firefox&q={term}'
   }, {
     name: 'Yahoo',
-    url: 'https://search.yahoo.com/search?p=',
-    suggest: 'https://search.yahoo.com/sugg/ff?output=fxjson&command='
+    url: 'https://search.yahoo.com/search?p={term}',
+    suggest: 'https://search.yahoo.com/sugg/ff?output=fxjson&command={term}'
   }, {
     name: 'Bing',
-    url: 'https://www.bing.com/search?form=OSDSRC&q=',
-    suggest: 'http://api.bing.com/osjson.aspx?form=OSDJAS&query='
+    url: 'https://www.bing.com/search?form=OSDSRC&q={term}',
+    suggest: 'http://api.bing.com/osjson.aspx?form=OSDJAS&query={term}'
   }, {
     name: 'Wikipedia',
-    url: 'http://en.wikipedia.org/w/index.php?title=Special:Search&search=',
-    suggest: 'http://en.wikipedia.org/w/api.php?action=opensearch&search='
+    url: 'http://en.wikipedia.org/w/index.php?title=Special:Search&search={term}',
+    suggest: 'http://en.wikipedia.org/w/api.php?action=opensearch&search={term}'
   }, {
     name: 'GitHub',
-    url: 'http://github.com/search?type=Everything&repo=&langOverride=&start_value=1&q=',
+    url: 'http://github.com/search?type=Everything&repo=&langOverride=&start_value=1&q={term}',
     suggest: ''
   }, {
     name: 'Translate',
-    url: 'http://translate.google.com/?q=',
+    url: 'http://translate.google.com/?q={term}',
     suggest: ''
   }],
   default: 0,
@@ -34,6 +35,7 @@ var verbSearch = {
 
 var verbOpen = {
   actionVerb: 'open',
+  version: '0.3',
   providers: [{
     name: 'Facebook',
     url: 'http://www.facebook.com/'
@@ -69,16 +71,17 @@ var verbOpen = {
 
 var verbConfig = {
   actionVerb: 'config',
+  version: '0.4',
   providers: [{
-    name: 'Settings',
+    name: 'Addons',
     url: 'widgets/app.html',
     embed: true
   }, {
     name: 'Report Issue',
-    url: 'https://github.com/gasolin/webdeacon/issues'
+    url: 'https://github.com/gasolin/webby/issues'
   }, {
     name: 'About',
-    url: 'https://github.com/gasolin/webdeacon'
+    url: 'https://github.com/gasolin/webby'
   }],
   default: 0
 };
